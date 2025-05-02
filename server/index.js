@@ -16,7 +16,11 @@ app.use(express.json());
 app.use(cors());
 
 // Connect to MongoDB (replace with your own connection string)
-mongoose.connect('mongodb://localhost:27017/smarted', { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect('mongodb+srv://hrshthnaidu:harshith@cluster0.xelcz.mongodb.net/smarted?retryWrites=true&w=majority&appName=Cluster0', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
+
   .then(() => console.log('Connected to MongoDB'))
   .catch(err => console.error('Error connecting to MongoDB:', err));
 

@@ -1,59 +1,67 @@
-// src/pages/AuthPage.js
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 export default function AuthPage() {
   const [tab, setTab] = useState('login');
   const [loginData, setLoginData] = useState({ email: '', password: '' });
-  const [registerData, setRegisterData] = useState({ email: '', password: '' });
+  const [registerData, setRegisterData] = useState({ email: '', username: '', password: '' });
   const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
   const navigate = useNavigate();
 
-  const DEFAULT_EMAIL = 'stud@g.com';
-  const DEFAULT_PASSWORD = '12345';
+  const BASE_URL = 'http://localhost:5000';
 
-  const handleLogin = (e) => {
-    e.preventDefault(); // Prevent the default form submission
-    console.log('Login button clicked'); // Debugging: Confirm login button is clicked
-    console.log('Login Data:', loginData); // Debugging: Check login data
-
-    if (
-      loginData.email === DEFAULT_EMAIL &&
-      loginData.password === DEFAULT_PASSWORD
-    ) {
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setError(null);
+    try {
+      const res = await axios.post(`${BASE_URL}/login`, loginData);
+      const { token, username } = res.data;
+      localStorage.setItem('token', token);
       localStorage.setItem('isLoggedIn', 'true');
-      console.log('Login successful! Setting localStorage and redirecting to landing page...'); // Debugging: Confirm login success
-      console.log('LocalStorage:', localStorage.getItem('isLoggedIn')); // Debugging: Check if localStorage is updated
-      navigate('/'); // Redirect to landing page
-    } else {
-      setError('Invalid credentials. Please try again.');
+      localStorage.setItem('username', username);
+      navigate('/');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Login failed');
     }
   };
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
-    if (registerData.email && registerData.password) {
-      alert(`Registered with Email: ${registerData.email}`);
-      setTab('login'); // Switch to login tab after registration
-    } else {
-      setError('Please fill in both fields to register.');
+    setError(null);
+    try {
+      await axios.post(`${BASE_URL}/register`, registerData);
+      setSuccess('Registration successful! Please login.');
+      setRegisterData({ email: '', username: '', password: '' });
+      setTab('login');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Registration failed');
     }
   };
 
   return (
     <div className="container mt-5">
-      <h1 className="text-center mb-4">Please Login / Register</h1>
+      <h1 className="text-center mb-4">Login / Register</h1>
 
       <div className="d-flex justify-content-center mb-3">
         <button
           className={`btn me-2 ${tab === 'login' ? 'btn-primary' : 'btn-outline-primary'}`}
-          onClick={() => setTab('login')}
+          onClick={() => {
+            setTab('login');
+            setError(null);
+            setSuccess(null);
+          }}
         >
           Login
         </button>
         <button
           className={`btn ${tab === 'register' ? 'btn-success' : 'btn-outline-success'}`}
-          onClick={() => setTab('register')}
+          onClick={() => {
+            setTab('register');
+            setError(null);
+            setSuccess(null);
+          }}
         >
           Register
         </button>
@@ -61,8 +69,8 @@ export default function AuthPage() {
 
       <div className="row justify-content-center">
         <div className="col-md-6">
-          {/* Show error message if any */}
           {error && <div className="alert alert-danger">{error}</div>}
+          {success && <div className="alert alert-success">{success}</div>}
 
           {tab === 'login' && (
             <form onSubmit={handleLogin} className="border p-4 rounded shadow">
@@ -85,9 +93,7 @@ export default function AuthPage() {
                   onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
                 />
               </div>
-              <button type="submit" className="btn btn-primary w-100">
-                Login
-              </button>
+              <button type="submit" className="btn btn-primary w-100">Login</button>
             </form>
           )}
 
@@ -104,6 +110,15 @@ export default function AuthPage() {
                 />
               </div>
               <div className="mb-3">
+                <label>Username</label>
+                <input
+                  className="form-control"
+                  type="text"
+                  value={registerData.username}
+                  onChange={(e) => setRegisterData({ ...registerData, username: e.target.value })}
+                />
+              </div>
+              <div className="mb-3">
                 <label>Password</label>
                 <input
                   className="form-control"
@@ -112,9 +127,7 @@ export default function AuthPage() {
                   onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
                 />
               </div>
-              <button type="submit" className="btn btn-success w-100">
-                Register
-              </button>
+              <button type="submit" className="btn btn-success w-100">Register</button>
             </form>
           )}
         </div>
