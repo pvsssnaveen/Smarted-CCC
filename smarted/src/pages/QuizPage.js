@@ -1,49 +1,49 @@
 // pages/quizpage.js
 import { useState } from 'react';
 import QuizQuestion from '../components/QuizQuestion';
+import {jwtDecode} from 'jwt-decode'; // ✅ Correct import
 
 export default function QuizPage() {
   const [topic, setTopic] = useState('');
   const [questions, setQuestions] = useState([]);
   const [userAnswers, setUserAnswers] = useState([]);
   const [submitted, setSubmitted] = useState(false);
+  const [score, setScore] = useState(0);
 
   const startQuiz = async () => {
     try {
       const token = localStorage.getItem('token');
-      
-      // Check if topic is provided
       if (!topic) {
         alert('Please enter a topic');
         return;
       }
-  
+
       const res = await fetch('http://localhost:5000/generate-quiz', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`, // If token is required
+          'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({ topic }), // Sending the topic in the body
+        body: JSON.stringify({ topic }),
       });
-  
+
       const data = await res.json();
       if (!data.questions) throw new Error(data.message || 'Failed to generate quiz');
-  
+
       const processedQuestions = data.questions.map((q) => ({
         ...q,
         correctAnswer: q.options.indexOf(q.correctOption),
       }));
-  
+
       setQuestions(processedQuestions);
       setUserAnswers(Array(processedQuestions.length).fill(null));
       setSubmitted(false);
+      setScore(0);
     } catch (err) {
       console.error('Failed to fetch quiz:', err);
       alert('Unable to fetch quiz, possibly due to an invalid token or no topic.');
     }
   };
-  
 
   const handleAnswer = (qIndex, optionIndex) => {
     const updated = [...userAnswers];
@@ -51,13 +51,45 @@ export default function QuizPage() {
     setUserAnswers(updated);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     setSubmitted(true);
-  };
 
-  const score = userAnswers.reduce(
-    (acc, ans, i) => ans === questions[i].correctAnswer ? acc + 1 : acc, 0
-  );
+    const calculatedScore = userAnswers.reduce(
+      (acc, ans, i) => ans === questions[i].correctAnswer ? acc + 1 : acc,
+      0
+    );
+
+    setScore(calculatedScore);
+
+    try {
+      const token = localStorage.getItem('token');
+      const decoded = jwtDecode(token); // Decode the token
+
+      // Extract username and email
+      const { username, email } = decoded;
+
+      const res = await fetch('http://localhost:5000/submit-quiz', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username,
+          email,
+          subject: topic,
+          marks: calculatedScore,
+        }),
+      });
+
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.message);
+      console.log('Quiz submitted:', result.message);
+      alert('Quiz submitted successfully');
+    } catch (err) {
+      console.error('Error submitting quiz:', err);
+      alert('Failed to submit quiz');
+    }
+  };
 
   return (
     <div className="container mt-5">
