@@ -18,7 +18,7 @@ app.use(cors());
 // Import the QA route
 const qaRoute = require('./qa'); // Make sure qa.js is in the same folder
 app.use('/api', qaRoute);
-
+app.use('/', require('./quiz')); // Import the quiz route
 // Connect to MongoDB
 mongoose.connect('mongodb+srv://hrshthnaidu:harshith@cluster0.xelcz.mongodb.net/smarted?retryWrites=true&w=majority&appName=Cluster0', {
   useNewUrlParser: true,

@@ -11,30 +11,39 @@ export default function QuizPage() {
   const startQuiz = async () => {
     try {
       const token = localStorage.getItem('token');
+      
+      // Check if topic is provided
+      if (!topic) {
+        alert('Please enter a topic');
+        return;
+      }
+  
       const res = await fetch('http://localhost:5000/generate-quiz', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        }
+          'Authorization': `Bearer ${token}`, // If token is required
+        },
+        body: JSON.stringify({ topic }), // Sending the topic in the body
       });
-
+  
       const data = await res.json();
       if (!data.questions) throw new Error(data.message || 'Failed to generate quiz');
-
+  
       const processedQuestions = data.questions.map((q) => ({
         ...q,
         correctAnswer: q.options.indexOf(q.correctOption),
       }));
-
+  
       setQuestions(processedQuestions);
       setUserAnswers(Array(processedQuestions.length).fill(null));
       setSubmitted(false);
     } catch (err) {
       console.error('Failed to fetch quiz:', err);
-      alert('Unable to fetch quiz, possibly due to an invalid token.');
+      alert('Unable to fetch quiz, possibly due to an invalid token or no topic.');
     }
   };
+  
 
   const handleAnswer = (qIndex, optionIndex) => {
     const updated = [...userAnswers];
