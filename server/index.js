@@ -12,19 +12,22 @@ const port = 5000;
 const SECRET_KEY = 'your_secret_key';
 
 // Middleware
-app.use(express.json());
+app.use(express.json()); // Important to parse JSON body
 app.use(cors());
 
-// Connect to MongoDB (replace with your own connection string)
+// Import the QA route
+const qaRoute = require('./qa'); // Make sure qa.js is in the same folder
+app.use('/api', qaRoute);
+
+// Connect to MongoDB
 mongoose.connect('mongodb+srv://hrshthnaidu:harshith@cluster0.xelcz.mongodb.net/smarted?retryWrites=true&w=majority&appName=Cluster0', {
   useNewUrlParser: true,
   useUnifiedTopology: true
 })
+.then(() => console.log('Connected to MongoDB'))
+.catch(err => console.error('Error connecting to MongoDB:', err));
 
-  .then(() => console.log('Connected to MongoDB'))
-  .catch(err => console.error('Error connecting to MongoDB:', err));
-
-// User schema
+// User Schema
 const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   username: { type: String, required: true, unique: true },
@@ -33,12 +36,12 @@ const userSchema = new mongoose.Schema({
 
 const User = mongoose.model('User', userSchema);
 
-// Helper functions
+// Helper function for token
 function generateToken(payload) {
   return jwt.sign(payload, SECRET_KEY, { expiresIn: '1h' });
 }
 
-// Register Route: User registration
+// Register Route
 app.post("/register", async (req, res) => {
   const { email, username, password } = req.body;
 
@@ -47,32 +50,23 @@ app.post("/register", async (req, res) => {
   }
 
   try {
-    // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Create a new user
-    const user = new User({
-      email,
-      username,
-      password: hashedPassword,
-    });
-
+    const user = new User({ email, username, password: hashedPassword });
     await user.save();
-    res.status(201).json({ message: "User registered successfully" });
 
+    res.status(201).json({ message: "User registered successfully" });
   } catch (err) {
     console.error('Error registering user:', err);
     res.status(500).json({ message: "Internal server error" });
   }
 });
 
-// Login Route: User login with email and password
+// Login Route
 app.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
@@ -81,21 +75,13 @@ app.post("/login", async (req, res) => {
   }
 
   try {
-    // Find user by email
     const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(401).json({ message: "User not found" });
-    }
+    if (!user) return res.status(401).json({ message: "User not found" });
 
-    // Compare password with hashed password
     const validPassword = await bcrypt.compare(password, user.password);
-    if (!validPassword) {
-      return res.status(401).json({ message: "Invalid password" });
-    }
+    if (!validPassword) return res.status(401).json({ message: "Invalid password" });
 
-    // Generate JWT token
     const token = generateToken({ username: user.username });
-
     res.json({ token, username: user.username });
 
   } catch (err) {
@@ -104,7 +90,7 @@ app.post("/login", async (req, res) => {
   }
 });
 
-// Start the server
+// Start server
 app.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);
 });
