@@ -123,6 +123,42 @@ app.post("/submit-quiz", async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 });
+// Profile Route - Get average marks per subject without authentication
+app.post("/profile", async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ message: "Email is required" });
+  }
+
+  try {
+    const user = await User.findOne({ email });
+
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const subjectMarksMap = {};
+
+    user.quizSubmissions.forEach((submission) => {
+      const { subject, marks } = submission;
+      if (!subjectMarksMap[subject]) {
+        subjectMarksMap[subject] = { total: 0, count: 0 };
+      }
+      subjectMarksMap[subject].total += marks;
+      subjectMarksMap[subject].count += 1;
+    });
+
+    const averageMarks = {};
+    for (const subject in subjectMarksMap) {
+      const { total, count } = subjectMarksMap[subject];
+      averageMarks[subject] = (total / count).toFixed(2);
+    }
+
+    res.json({ username: user.username, averageMarks });
+  } catch (err) {
+    console.error("Error fetching profile data:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
 
 // Start Server
 app.listen(port, () => {
