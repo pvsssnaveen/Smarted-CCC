@@ -1,30 +1,33 @@
 import { useState } from 'react';
 import QuizQuestion from '../components/QuizQuestion';
 
-const mockAIQuestions = (topic) => [
-  {
-    question: `What is ${topic}?`,
-    options: ["Option A", "Option B", "Option C", "Option D"],
-    correctAnswer: 0
-  },
-  {
-    question: `Why is ${topic} important?`,
-    options: ["Reason 1", "Reason 2", "Reason 3", "Reason 4"],
-    correctAnswer: 1
-  }
-];
-
 export default function QuizPage() {
   const [topic, setTopic] = useState('');
   const [questions, setQuestions] = useState([]);
   const [userAnswers, setUserAnswers] = useState([]);
   const [submitted, setSubmitted] = useState(false);
 
-  const startQuiz = () => {
-    const aiQuestions = mockAIQuestions(topic);
-    setQuestions(aiQuestions);
-    setUserAnswers(Array(aiQuestions.length).fill(null));
-    setSubmitted(false);
+  const startQuiz = async () => {
+    try {
+      const res = await fetch('http://localhost:5000/generate-quiz', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      const data = await res.json();
+
+      // Convert correctOption (text) to correctAnswer (index)
+      const processedQuestions = data.questions.map((q) => ({
+        ...q,
+        correctAnswer: q.options.indexOf(q.correctOption),
+      }));
+
+      setQuestions(processedQuestions);
+      setUserAnswers(Array(processedQuestions.length).fill(null));
+      setSubmitted(false);
+    } catch (err) {
+      console.error('Failed to fetch quiz:', err);
+    }
   };
 
   const handleAnswer = (qIndex, optionIndex) => {
