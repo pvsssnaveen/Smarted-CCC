@@ -1,3 +1,4 @@
+// src/pages/AuthPage.js
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -5,27 +6,38 @@ export default function AuthPage() {
   const [tab, setTab] = useState('login');
   const [loginData, setLoginData] = useState({ email: '', password: '' });
   const [registerData, setRegisterData] = useState({ email: '', password: '' });
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
   const DEFAULT_EMAIL = 'stud@g.com';
   const DEFAULT_PASSWORD = '12345';
 
   const handleLogin = (e) => {
-    e.preventDefault();
+    e.preventDefault(); // Prevent the default form submission
+    console.log('Login button clicked'); // Debugging: Confirm login button is clicked
+    console.log('Login Data:', loginData); // Debugging: Check login data
+
     if (
       loginData.email === DEFAULT_EMAIL &&
       loginData.password === DEFAULT_PASSWORD
     ) {
       localStorage.setItem('isLoggedIn', 'true');
-      navigate('/'); // redirect to landing
+      console.log('Login successful! Setting localStorage and redirecting to landing page...'); // Debugging: Confirm login success
+      console.log('LocalStorage:', localStorage.getItem('isLoggedIn')); // Debugging: Check if localStorage is updated
+      navigate('/'); // Redirect to landing page
     } else {
-      alert('Invalid credentials');
+      setError('Invalid credentials. Please try again.');
     }
   };
 
   const handleRegister = (e) => {
     e.preventDefault();
-    alert(`Registered with Email: ${registerData.email}`);
+    if (registerData.email && registerData.password) {
+      alert(`Registered with Email: ${registerData.email}`);
+      setTab('login'); // Switch to login tab after registration
+    } else {
+      setError('Please fill in both fields to register.');
+    }
   };
 
   return (
@@ -49,6 +61,9 @@ export default function AuthPage() {
 
       <div className="row justify-content-center">
         <div className="col-md-6">
+          {/* Show error message if any */}
+          {error && <div className="alert alert-danger">{error}</div>}
+
           {tab === 'login' && (
             <form onSubmit={handleLogin} className="border p-4 rounded shadow">
               <h4 className="mb-3">Login</h4>
@@ -70,7 +85,9 @@ export default function AuthPage() {
                   onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
                 />
               </div>
-              <button type="submit" className="btn btn-primary w-100">Login</button>
+              <button type="submit" className="btn btn-primary w-100">
+                Login
+              </button>
             </form>
           )}
 
@@ -95,7 +112,9 @@ export default function AuthPage() {
                   onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
                 />
               </div>
-              <button type="submit" className="btn btn-success w-100">Register</button>
+              <button type="submit" className="btn btn-success w-100">
+                Register
+              </button>
             </form>
           )}
         </div>

@@ -1,3 +1,4 @@
+// pages/login.js
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -5,10 +6,26 @@ const Login = () => {
   const [username, setUsername] = useState('');
   const navigate = useNavigate();
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (username.trim()) {
-      localStorage.setItem('user', JSON.stringify({ username }));
-      navigate('/quiz'); // Redirect to protected route
+      try {
+        const response = await fetch('http://localhost:5000/username-login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username })
+        });
+        const data = await response.json();
+        if (data.access_token) {
+          localStorage.setItem('token', data.access_token);
+          localStorage.setItem('username', username);
+          navigate('/quiz');
+        } else {
+          alert('Login failed');
+        }
+      } catch (err) {
+        console.error('Login error:', err);
+        alert('Error during login');
+      }
     } else {
       alert('Enter username');
     }

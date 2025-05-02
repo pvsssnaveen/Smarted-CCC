@@ -1,3 +1,4 @@
+// pages/quizpage.js
 import { useState } from 'react';
 import QuizQuestion from '../components/QuizQuestion';
 
@@ -9,14 +10,18 @@ export default function QuizPage() {
 
   const startQuiz = async () => {
     try {
+      const token = localStorage.getItem('token');
       const res = await fetch('http://localhost:5000/generate-quiz', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
       });
 
       const data = await res.json();
+      if (!data.questions) throw new Error(data.message || 'Failed to generate quiz');
 
-      // Convert correctOption (text) to correctAnswer (index)
       const processedQuestions = data.questions.map((q) => ({
         ...q,
         correctAnswer: q.options.indexOf(q.correctOption),
@@ -27,6 +32,7 @@ export default function QuizPage() {
       setSubmitted(false);
     } catch (err) {
       console.error('Failed to fetch quiz:', err);
+      alert('Unable to fetch quiz, possibly due to an invalid token.');
     }
   };
 

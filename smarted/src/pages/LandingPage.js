@@ -1,18 +1,23 @@
+// pages/Landingpage.js
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 export default function LandingPage() {
   const navigate = useNavigate();
+  
   useEffect(() => {
-    const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-    if (!isLoggedIn) {
+    const token = localStorage.getItem('token');
+    if (!token) {
       navigate('/auth');
     }
   }, [navigate]);
+
   const handleLogout = () => {
-    localStorage.removeItem('isLoggedIn');
-    navigate('/auth');
+    localStorage.removeItem('token');
+    localStorage.removeItem('username');
+    navigate('/login');
   };
+
   const backgroundStyle = {
     backgroundImage: `url('/bg.jpg')`,
     backgroundSize: 'cover',

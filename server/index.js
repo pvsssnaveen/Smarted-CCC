@@ -1,100 +1,106 @@
 const express = require('express');
+const bcrypt = require('bcrypt');
 const multer = require('multer');
 const path = require('path');
 const os = require('os');
-const cors=require('cors');
+const cors = require('cors');
+const jwt = require('jsonwebtoken');
+const mongoose = require('mongoose');
+
 const app = express();
 const port = 5000;
+const SECRET_KEY = 'your_secret_key';
 
-// Middleware to parse JSON (optional, not required for your current POST)
+// Middleware
 app.use(express.json());
-app.use(cors()); // Enable CORS for all routes
-// Setup Multer storage (for future file uploads)
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/');
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname));
-  },
-});
-const upload = multer({ storage: storage });
+app.use(cors());
 
-// POST /generate-quiz – Return 10 hardcoded quiz questions
-app.post('/generate-quiz', (req, res) => {
-  const questions = [
-    {
-      question: "What is 2 + 2?",
-      options: ["3", "4", "5", "6"],
-      correctOption: "4",
-    },
-    {
-      question: "What is the capital of France?",
-      options: ["Berlin", "Madrid", "Paris", "Rome"],
-      correctOption: "Paris",
-    },
-    {
-      question: "What is the largest planet in our solar system?",
-      options: ["Earth", "Mars", "Jupiter", "Saturn"],
-      correctOption: "Jupiter",
-    },
-    {
-      question: "Who wrote 'Romeo and Juliet'?",
-      options: ["Shakespeare", "Dickens", "Austen", "Hemingway"],
-      correctOption: "Shakespeare",
-    },
-    {
-      question: "What is the chemical symbol for water?",
-      options: ["O2", "H2O", "CO2", "O3"],
-      correctOption: "H2O",
-    },
-    {
-      question: "What is the tallest mountain in the world?",
-      options: ["K2", "Mount Everest", "Kangchenjunga", "Makalu"],
-      correctOption: "Mount Everest",
-    },
-    {
-      question: "Who painted the Mona Lisa?",
-      options: ["Van Gogh", "Picasso", "Da Vinci", "Michelangelo"],
-      correctOption: "Da Vinci",
-    },
-    {
-      question: "What is the speed of light?",
-      options: ["299,792 km/s", "150,000 km/s", "100,000 km/s", "1,000,000 km/s"],
-      correctOption: "299,792 km/s",
-    },
-    {
-      question: "Who developed the theory of relativity?",
-      options: ["Newton", "Einstein", "Galileo", "Tesla"],
-      correctOption: "Einstein",
-    },
-    {
-      question: "What is the smallest country in the world?",
-      options: ["Monaco", "Vatican City", "Nauru", "San Marino"],
-      correctOption: "Vatican City",
-    },
-  ];
+// Connect to MongoDB (replace with your own connection string)
+mongoose.connect('mongodb://localhost:27017/smarted', { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log('Connected to MongoDB'))
+  .catch(err => console.error('Error connecting to MongoDB:', err));
 
-  res.json({ questions });
+// User schema
+const userSchema = new mongoose.Schema({
+  email: { type: String, required: true, unique: true },
+  username: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
 });
 
-// Helper to get local IP address
-function getLocalIPAddress() {
-  const interfaces = os.networkInterfaces();
-  for (const iface of Object.values(interfaces)) {
-    for (const config of iface) {
-      if (config.family === 'IPv4' && !config.internal) {
-        return config.address;
-      }
-    }
-  }
+const User = mongoose.model('User', userSchema);
+
+// Helper functions
+function generateToken(payload) {
+  return jwt.sign(payload, SECRET_KEY, { expiresIn: '1h' });
 }
 
-const localIP = getLocalIPAddress();
+// Register Route: User registration
+app.post("/register", async (req, res) => {
+  const { email, username, password } = req.body;
 
-// Start server on all interfaces (network-accessible)
-app.listen(port, '0.0.0.0', () => {
-  console.log(`Server is running:
-  - Local:   http://localhost:${port}
-  - Network: http://${localIP}:${port}`);
+  if (!email || !username || !password) {
+    return res.status(400).json({ message: "Email, username, and password are required" });
+  }
+
+  try {
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create a new user
+    const user = new User({
+      email,
+      username,
+      password: hashedPassword,
+    });
+
+    await user.save();
+    res.status(201).json({ message: "User registered successfully" });
+
+  } catch (err) {
+    console.error('Error registering user:', err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+// Login Route: User login with email and password
+app.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ message: "Email and password are required" });
+  }
+
+  try {
+    // Find user by email
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(401).json({ message: "User not found" });
+    }
+
+    // Compare password with hashed password
+    const validPassword = await bcrypt.compare(password, user.password);
+    if (!validPassword) {
+      return res.status(401).json({ message: "Invalid password" });
+    }
+
+    // Generate JWT token
+    const token = generateToken({ username: user.username });
+
+    res.json({ token, username: user.username });
+
+  } catch (err) {
+    console.error('Error logging in:', err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+// Start the server
+app.listen(port, () => {
+  console.log(`Server is running at http://localhost:${port}`);
 });
