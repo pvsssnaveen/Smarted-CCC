@@ -18,7 +18,7 @@ export default function QuizPage() {
         return;
       }
 
-      const res = await fetch('http://localhost:5000/generate-quiz', {
+      const res = await fetch('https://smartedbackend.onrender.com/generate-quiz', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

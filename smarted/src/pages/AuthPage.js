@@ -10,7 +10,7 @@ export default function AuthPage() {
   const [success, setSuccess] = useState(null);
   const navigate = useNavigate();
 
-  const BASE_URL = 'http://localhost:5000';
+  const BASE_URL = 'https://smartedbackend.onrender.com';
 
   const handleLogin = async (e) => {
     e.preventDefault();
