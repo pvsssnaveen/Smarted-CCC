@@ -20,7 +20,7 @@ export default function ProfilePage() {
         const { email, username } = decoded;
         setUsername(username);
 
-        const response = await axios.post("http://localhost:5000/profile", {
+        const response = await axios.post("https://smartedbackend.onrender.com/profile", {
           email,
         });
 

@@ -68,7 +68,7 @@ export default function QuizPage() {
       // Extract username and email
       const { username, email } = decoded;
 
-      const res = await fetch('http://localhost:5000/submit-quiz', {
+      const res = await fetch('https://smartedbackend.onrender.com/submit-quiz', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
