@@ -3,7 +3,7 @@ const router = express.Router();
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 // Load Gemini API key from env
-const genAI = new GoogleGenerativeAI("AIzaSyAc_9LeBiTDZo77eLmJ33BPAEIXyyD72lw");
+const genAI = new GoogleGenerativeAI("AIzaSyBoWhvwEeRWAVp13ckaeP0CkeLNhUh3MS8");
 
 // Generate quiz questions using Gemini
 router.post('/generate-quiz', async (req, res) => {

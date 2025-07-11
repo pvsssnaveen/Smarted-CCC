@@ -4,7 +4,7 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 const router = express.Router();
 
 // Initialize Gemini AI with your API key
-const genAI = new GoogleGenerativeAI("AIzaSyAc_9LeBiTDZo77eLmJ33BPAEIXyyD72lw");
+const genAI = new GoogleGenerativeAI("AIzaSyBoWhvwEeRWAVp13ckaeP0CkeLNhUh3MS8");
 
 router.post('/qa', async (req, res) => {
   try {
