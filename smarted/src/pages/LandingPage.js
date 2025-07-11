@@ -1,6 +1,7 @@
 // pages/Landingpage.js
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import bgImage from './bg.jpg'
 
 export default function LandingPage() {
   const navigate = useNavigate();
@@ -19,17 +20,18 @@ export default function LandingPage() {
   };
 
   const backgroundStyle = {
-    backgroundImage: `url('/bg.jpg')`,
-    backgroundSize: 'cover',
-    minHeight: '100vh',
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-    color: 'white',
-    textShadow: '1px 1px 5px black',
-    textAlign: 'center',
-  };
+  backgroundImage: `url(${bgImage})`,
+  backgroundSize: 'cover',
+  minHeight: '100vh',
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'center',
+  alignItems: 'center',
+  color: 'white',
+  textShadow: '1px 1px 5px black',
+  textAlign: 'center',
+};
+
 
   const overlayStyle = {
     backgroundColor: 'rgba(2, 2, 2, 0.5)',
