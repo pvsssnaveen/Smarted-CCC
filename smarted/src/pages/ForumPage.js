@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import "./ForumPage.css"; // 👈 Ensure this CSS file exists
 
 export default function ForumPage() {
   const [messages, setMessages] = useState([]);
@@ -34,7 +35,7 @@ export default function ForumPage() {
       console.error(err);
       setMessages((prev) => [
         ...prev,
-        { role: "bot", text: "Error contacting AI." },
+        { role: "bot", text: "❌ Error contacting AI." },
       ]);
     } finally {
       setLoading(false);
@@ -46,45 +47,36 @@ export default function ForumPage() {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-gray-100">
-      <h2 className="text-2xl font-bold p-4">💬 Doubt Forum</h2>
+    <div className="forum-container">
+      <header className="forum-header">💬 Doubt Forum</header>
 
-      {/* Chat area */}
-      <div className="flex-1 bg-yellow overflow-y-auto px-4 space-y-2 flex flex-col">
+      <div className="chat-area">
         {messages.map((msg, index) => (
           <div
             key={index}
-            className={`max-w-xs px-4 py-2 rounded-xl text-black  ${
-              msg.role === "user"
-                ? "bg-blue-600 self-end text-right"
-                : "bg-blue-400 self-start text-left"
-            }`}
+            className={`message ${msg.role === "user" ? "user" : "bot"}`}
           >
-            <p className="text-sm whitespace-pre-wrap">{msg.text}</p>
+            <p>{msg.text}</p>
           </div>
         ))}
         {loading && (
-          <div className="text-sm text-gray-600 italic">Gemini is typing...</div>
+          <div className="typing-indicator">🤖 Agent is typing...</div>
         )}
         <div ref={chatEndRef} />
       </div>
 
-      {/* Input at bottom */}
-      <div className="p-4 bg-white border-t flex items-center">
-        <input
-          type="text"
-          placeholder="Ask your doubt..."
-          className="flex-1 border border-gray-300 rounded-xl px-4 py-2 mr-2 focus:outline-none focus:ring focus:border-blue-300"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={handleKeyPress}
-        />
-        <button
-          onClick={sendMessage}
-          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl"
-        >
-          Send
-        </button>
+      {/* Fixed input at bottom */}
+      <div className="input-area-fixed">
+        <div className="input-wrapper">
+          <input
+            type="text"
+            placeholder="Ask your doubt..."
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyPress}
+          />
+          <button onClick={sendMessage}>Send</button>
+        </div>
       </div>
     </div>
   );

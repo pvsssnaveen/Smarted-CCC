@@ -36,26 +36,52 @@ export default function ProfilePage() {
   }, []);
 
   return (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold mb-4">My Profile</h2>
+    <div className="min-h-screen bg-gradient-to-br from-white to-blue-50 p-6 flex items-center justify-center">
+      <div className="w-full max-w-xl bg-white rounded-2xl shadow-xl p-8 animate-fade-in">
+        <h2 className="text-3xl font-bold text-blue-700 mb-6 border-b pb-2">My Profile</h2>
 
-      {loading ? (
-        <p>Loading...</p>
-      ) : (
-        <>
-          <h3 className="text-lg font-semibold mb-2">Welcome, {username}!</h3>
-          <div className="mt-4">
-            <h4 className="text-md font-medium mb-2">Average Marks per Subject:</h4>
-            <ul className="list-disc pl-5 space-y-1">
-              {Object.entries(averageMarks).map(([subject, avg]) => (
-                <li key={subject}>
-                  <strong>{subject}:</strong> {avg}
-                </li>
-              ))}
-            </ul>
+        {loading ? (
+          <div className="text-gray-500 text-center">
+            <svg
+              className="animate-spin h-6 w-6 mr-2 inline-block text-blue-600"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8v4l3.5-3.5L12 0v4a8 8 0 018 8h-4l3.5 3.5L20 20h-4a8 8 0 01-8-8z"
+              ></path>
+            </svg>{" "}
+            Loading profile...
           </div>
-        </>
-      )}
+        ) : (
+          <>
+            <h3 className="text-xl font-semibold text-gray-800 mb-4">
+              Welcome, <span className="text-blue-600">{username}</span>!
+            </h3>
+
+            <div className="mt-6">
+              <h4 className="text-lg font-medium text-gray-700 mb-2">
+                📊 Average Marks per Subject:
+              </h4>
+              <ul className="space-y-2">
+                {Object.entries(averageMarks).map(([subject, avg]) => (
+                  <li
+                    key={subject}
+                    className="bg-blue-50 p-3 rounded-lg shadow-sm flex justify-between items-center"
+                  >
+                    <span className="text-gray-700 font-medium">{subject}  </span>
+                    <span className="text-blue-700 font-bold">{avg}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }
